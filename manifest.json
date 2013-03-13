@@ -8,7 +8,8 @@
 	"permissions": [
 		"tabs",
 		"notifications",
-		"storage"
+		"storage",
+		"*://*/*"
 	],
 	"page_action": {
 		"default_icon": {
