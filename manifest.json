@@ -1,0 +1,23 @@
+{
+	"manifest_version": 2,
+
+	"name": "ELMAH Watcher",
+	"description": "Watch the ELMAH page for new errors",
+	"version": "0.3",
+
+	"permissions": [
+		"tabs",
+		"notifications",
+		"storage"
+	],
+	"page_action": {
+		"default_icon": {
+			"38": "images/icon-38.png",
+			"19": "images/icon-19.png"
+		},
+		"default_popup": "elmahWatcher.html",
+		"default_title": "ELMAH Watcher"
+	},
+	"background": {"scripts": ["background.js"]},
+	"options_page": "options.html"
+}
