@@ -16,7 +16,7 @@
 			"38": "images/icon-38.png",
 			"19": "images/icon-19.png"
 		},
-		"default_popup": "elmahWatcher.html",
+		"default_popup": "popup.html",
 		"default_title": "ELMAH Watcher"
 	},
 	"background": {"scripts": ["background.js"]},
