@@ -34,6 +34,7 @@ var elmahPopup = (function($j){
 		} else {
 			messagePage("interval", 0);
 		}
+
 		var name = "enabled" + loc;
 		console.log(name)
 		console.log(this.checked);
@@ -46,12 +47,13 @@ var elmahPopup = (function($j){
 	function onPageMessage(msg){
 		if (msg.name === "location"){
 			loc = msg.value;
-			console.log("enabled" + loc);
 			chrome.storage.sync.get("enabled" + loc, function(val){
 				var enabled = val['enabled'+loc];
 				console.log(val);
-				if (enabled === true)
+				if (enabled === true){
 					$j("#enableWatcher")[0].checked = true;
+					messagePage("interval", interval);
+				}
 			});
 		}
 	}
