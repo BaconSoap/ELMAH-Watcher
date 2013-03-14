@@ -64,6 +64,8 @@ var elmahPopup = (function($j){
 		
 	}
 
+	
+
 	function message(name, value, target){
 		backgroundPort.postMessage({name:name, value:value, target:target});
 	}

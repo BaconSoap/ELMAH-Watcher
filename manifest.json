@@ -20,5 +20,6 @@
 		"default_title": "ELMAH Watcher"
 	},
 	"background": {"scripts": ["background.js"]},
-	"options_page": "options.html"
+	"options_page": "options.html",
+	"web_accessible_resources": ["images/icon-38.png"]
 }

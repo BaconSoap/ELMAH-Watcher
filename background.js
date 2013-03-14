@@ -1,6 +1,6 @@
 var interval = 0;
 
-function checkUrl(tabID, changeInfo, tab){
+function checkUrl(tabID, changeInfo, tab){{
 	if(changeInfo['status'] !== "complete")
 		return;
 	chrome.storage.sync.get(["pageWatchPattern", "pageRefreshInterval"], function(val){
@@ -11,10 +11,10 @@ function checkUrl(tabID, changeInfo, tab){
 		pattern = getDefaultVal(val, "pageWatchPattern", "elmah.axd");
 		interval = parseInt(getDefaultVal(val, "pageRefreshInterval", 0),10);
 		var re = new RegExp(pattern, "i");
-		
+
 		if (tab.url.toLowerCase().match(re))
 			initWatchedPage(tabID);
-	});
+	});}
 }
 
 function getDefaultVal(obj, prop, def){
@@ -25,14 +25,35 @@ function getDefaultVal(obj, prop, def){
 }
 
 function initWatchedPage(tabID) {
-	var port = chrome.tabs.connect(tabID, {name:'elmahWatcher'});
 	chrome.tabs.executeScript(tabID, {file:'jquery-1.9.1.min.js'});
 	chrome.tabs.executeScript(tabID, {file:'content_script.js'});
 	chrome.pageAction.show(tabID);
+	
 }
+
+function createNotification(tab, msg){
+		var notification = webkitNotifications.createNotification(
+			'images/icon-38.png','New Log Entry Detected',msg);
+		
+		notification.onclick = function(){
+			chrome.tabs.update(tab, {active:true});
+			this.cancel();
+		}
+
+		notification.show();
+	}
 
 function onConnect(port){
 	message(port, "interval", interval, "all");
+	port.onMessage.addListener(function(msg){
+		onMessage(msg, port);
+	});
+
+}
+
+function onMessage(msg, port){
+	if(msg.name === "notify")
+		createNotification(port.sender.tab.id, msg.value);
 }
 
 function message(port, name, value, target){
