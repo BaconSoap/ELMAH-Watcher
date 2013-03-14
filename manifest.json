@@ -2,8 +2,8 @@
 	"manifest_version": 2,
 
 	"name": "ELMAH Watcher",
-	"description": "Watch the ELMAH page for new errors",
-	"version": "0.3",
+	"description": "Watch ELMAH pages for new errors",
+	"version": "0.9",
 
 	"permissions": [
 		"tabs",
@@ -11,6 +11,9 @@
 		"storage",
 		"*://*/*"
 	],
+	"icons":{"16":"images/icon-16.png",
+			 "48":"images/icon-48.png", 
+			 "128":"images/icon-128.png"},
 	"page_action": {
 		"default_icon": {
 			"38": "images/icon-38.png",

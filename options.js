@@ -26,14 +26,18 @@ var elmahWatcherOptions =
 		console.log("saved!");
 		var matcher = $j('#watchPagePattern').val();
 		var interval = $j("#refreshInterval").val();
-		
+		var codePattern = $j("#codePattern").val();
+		var messageDisplay = $j("#messageDisplay").val();
+
 		console.log(interval);
 		if (matcher === '')
 			matcher = "elmah.axd"
 		
 		chrome.storage.sync.set({"pageWatchPattern":matcher});
 		chrome.storage.sync.set({"pageRefreshInterval":interval});
-		$j("#saveOptions").fadeOut();
+		chrome.storage.sync.set({"codePattern":codePattern});
+		chrome.storage.sync.set({"messageDisplay":messageDisplay});
+		$j("#saveOptions").fadeOut().fadeIn();
 		return false;
 	}
 
@@ -42,7 +46,7 @@ var elmahWatcherOptions =
 		$j(id).val(val);
 	}
 
-	
+
 
 	return {start:start};
 })(jQuery.noConflict());

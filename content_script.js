@@ -35,18 +35,16 @@ var elmahWatcher = (function($j){
 		var table = $j("#ErrorLog");
 		var columns = table.find("th");
 		columnNameNumberMap = {};
-		console.log(columns)
 		columns.each(function(i, val){
 			columnNameNumberMap[$j(val).text()] = i;
 		});
-		console.log(columnNameNumberMap)
 	}
 
 	function setupTokenColumnMap(){
 		var matcher = new RegExp("(\\[[0-9a-zA-Z\\| ]+\\])", "gi");
 		var tokens = messageDisplay.match(matcher);
 		tokens.push(codePattern.match(matcher)[0]);
-		console.log(tokens);
+
 		for(var i in columnNameNumberMap){
 			if (columnNameNumberMap.hasOwnProperty(i)){
 				var name = i;
@@ -61,18 +59,17 @@ var elmahWatcher = (function($j){
 				}
 			}
 		}
-		console.log(tokenColumnMap);
 	}
 
 	function checkRows(){
-		chrome.storage.sync.get("latestErrorCode", function(val){
-			var oldTopCode = getDefaultVal(val, "latestErrorCode", "there is no top code");
+		chrome.storage.sync.get("latestErrorCode" + location.href, function(val){
+			var oldTopCode = val["latestErrorCode" + location.href];
 			var table = $j("#ErrorLog");
 			var topRow = table.find(".odd-row, .even-row")[0];
 			var codeColumn = tokenColumnMap[codePattern];
 			
 			var topCode = $j(topRow).find("td")[codeColumn].innerText;
-			console.log(topCode)
+
 			if (topCode !== oldTopCode){
 				processNewTopCode(topRow, topCode);
 			}
@@ -81,17 +78,27 @@ var elmahWatcher = (function($j){
 	}
 
 	function processNewTopCode(topRow, topCode){
-		chrome.storage.sync.set({"latestErrorCode":topCode}, function(){
+		var vals = {};
+		vals["latestErrorCode" + location.href] = topCode;
+		chrome.storage.sync.set(vals, function(){
 			var matcher = new RegExp("(\\[[0-9a-zA-Z\\| ]+\\])", "gi");
 			var tokens = messageDisplay.match(matcher);
 			var tokenValues = {};
-
+			var cells = $j(topRow).find("td");
+			
 			for (var i = 0; i < tokens.length; i++){
-				tokenValues[tokens[i]] = tokenColumnMap[tokens[i]];
-				
+				var column = tokenColumnMap[tokens[i]];
+				tokenValues[tokens[i]] = cells[column].innerText;
 			}
+			
+			var message = messageDisplay;
+			console.log(tokens);
+			console.log(message);
 			console.log(tokenValues);
-			notify(topCode);
+			for(var i = 0; i < tokens.length; i++)
+				message = message.replace(tokens[i], tokenValues[tokens[i]]);
+
+			notify(message);
 		});
 	}
 
@@ -100,10 +107,10 @@ var elmahWatcher = (function($j){
 	}
 
 	function onPopupMessage(msg){
-		console.log(msg);
+
 		if (msg.name === "interval"){
 			var interval = msg.value;
-			console.log(interval);
+
 			if (interval === 0){
 				clearTimeout(refresher);
 			} else {
@@ -118,7 +125,7 @@ var elmahWatcher = (function($j){
 			chrome.storage.sync.get("enabled" + location.href, function(val){
 				var enabled = val['enabled' + location.href];
 				var interval = msg.value;
-				console.log(msg);
+
 				if (interval === 0){
 					clearTimeout(refresher);
 				} else if (enabled) {
