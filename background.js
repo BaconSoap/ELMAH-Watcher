@@ -31,12 +31,13 @@ function initWatchedPage(tabID) {
 	
 }
 
-function createNotification(tab, msg){
+function createNotification(tab, msg, port, matchedId){
 		var notification = webkitNotifications.createNotification(
 			'images/icon-38.png','New Log Entry Detected',msg);
 		
 		notification.onclick = function(){
 			chrome.tabs.update(tab, {active:true});
+			messageTab(tab, "highlight", matchedId)
 			this.cancel();
 		}
 
@@ -53,7 +54,11 @@ function onConnect(port){
 
 function onMessage(msg, port){
 	if(msg.name === "notify")
-		createNotification(port.sender.tab.id, msg.value);
+		createNotification(port.sender.tab.id, msg.value, port, msg.matchedId);
+}
+
+function messageTab(tab,name,value){
+	chrome.tabs.sendMessage(tab, {name:name, value:value})
 }
 
 function message(port, name, value, target){

@@ -1,7 +1,7 @@
 jQuery.noConflict();
 
 var elmahWatcher = (function($j){
-
+	var DEBUG = false;
 	var port;
 	var popupPort;
 	var refresher = -1;
@@ -11,6 +11,7 @@ var elmahWatcher = (function($j){
 	var tokenColumnMap = {};
 	var enabled;
 	var tabID;
+	var matcher = new RegExp("(@[0-9a-zA-Z\\| ]+@)", "gi");
 
 	function start(){
 		$j(init);
@@ -18,13 +19,14 @@ var elmahWatcher = (function($j){
 	}
 
 	function init(){
+		chrome.extension.onMessage.addListener(onMessage);
 		chrome.extension.onConnect.addListener(onConnect);
 		port = chrome.extension.connect({name:"elmahWatcher"});
 		port.onMessage.addListener(onMessage);
 		chrome.storage.sync.get(["codePattern", "messageDisplay", "enabled" + location.href], function(val) {
 			enabled = getDefaultVal(val, "enabled" + location.href, false);
-			codePattern = getDefaultVal(val, "codePatetrn", "[code|client code]");
-			messageDisplay = getDefaultVal(val, "messageDisplay", "[code|client code] - [error|message]");
+			codePattern = getDefaultVal(val, "codePatetrn", "@code|client code@");
+			messageDisplay = getDefaultVal(val, "messageDisplay", "@code|client code@ - @error|message@");
 			setupNameColumnMap();
 			setupTokenColumnMap();
 			checkRows();
@@ -34,76 +36,116 @@ var elmahWatcher = (function($j){
 	function setupNameColumnMap(){
 		var table = $j("#ErrorLog");
 		var columns = table.find("th");
-		columnNameNumberMap = {};
+		
 		columns.each(function(i, val){
 			columnNameNumberMap[$j(val).text()] = i;
 		});
 	}
 
-	function setupTokenColumnMap(){
-		var matcher = new RegExp("(\\[[0-9a-zA-Z\\| ]+\\])", "gi");
-		var tokens = messageDisplay.match(matcher);
-		tokens.push(codePattern.match(matcher)[0]);
-
+	function addTokenColumns(str){
+		var tokens = str.match(matcher);
 		for(var i in columnNameNumberMap){
 			if (columnNameNumberMap.hasOwnProperty(i)){
 				var name = i;
 				for(var j = 0; j < tokens.length; j++){
 					var token = tokens[j];
-					
-					var tokenMatcher = new RegExp(token.replace("[","").replace("]",""), "gi");
+					var tokenMatcher = new RegExp(token.replace("@","").replace("@",""), "gi");
 					if (name.match(tokenMatcher)){
 						tokenColumnMap[token] = columnNameNumberMap[i];
 					}
-
 				}
 			}
 		}
 	}
 
+	function setupTokenColumnMap(){
+		addTokenColumns(messageDisplay);
+		addTokenColumns(codePattern);
+	}
+
 	function checkRows(){
-		chrome.storage.sync.get("latestErrorCode" + location.href, function(val){
+		chrome.storage.sync.get(["latestErrorCode" + location.href, 'filter' + location.href], function(val){
 			var oldTopCode = val["latestErrorCode" + location.href];
+			var filter = getDefaultVal(val, "filter" + location.href, "");
+
 			var table = $j("#ErrorLog");
-			var topRow = table.find(".odd-row, .even-row")[0];
-			var codeColumn = tokenColumnMap[codePattern];
 			
+			var rows = table.find(".odd-row, .even-row");
+			var topRow = runFilter($j(rows), filter);
+			var codeColumn = tokenColumnMap[codePattern];
+
 			var topCode = $j(topRow).find("td")[codeColumn].innerText;
 
-			if (topCode !== oldTopCode){
+			if (topCode !== oldTopCode || DEBUG){
 				processNewTopCode(topRow, topCode);
 			}
 
 		});
 	}
 
+	function runFilter(rows, filter){
+		if (filter === "")
+			return rows[0];
+		var expressions = filter.split("~~");
+		
+		//Add the column tokens
+		$j.each(expressions, function(i,v){addTokenColumns(v)});
+		
+		for(var i = 0; i < expressions.length; i++){
+			rows = filterRows(rows, FilterExpression(expressions[i]));
+		}
+
+		return rows[0]
+	}
+
+	function filterRows(rows, expression){
+		//For each row:
+		// Find the value of row[expression.columnToken]
+		// does the value match against the RegExp of expression.valueMatcher?
+		//  If so, add it to result set
+		var results = [];
+		var col = expression.columnToken;
+		var valMatcher = new RegExp(expression.valueMatcher, "gi");
+		rows.each(function(i,v){
+
+			var val = $j(v).find('td')[tokenColumnMap[col]].innerText;
+			if (val.match(valMatcher))
+				results.push(v);
+		});
+		console.log(results);
+		return $j(results);
+	}
+
+	function FilterExpression(expressionStr){
+		var expression = {};
+		var parts = expressionStr.split("~");
+		return {columnToken:parts[0], valueMatcher: parts[1]};
+	}
+
 	function processNewTopCode(topRow, topCode){
 		var vals = {};
 		vals["latestErrorCode" + location.href] = topCode;
 		chrome.storage.sync.set(vals, function(){
-			var matcher = new RegExp("(\\[[0-9a-zA-Z\\| ]+\\])", "gi");
 			var tokens = messageDisplay.match(matcher);
 			var tokenValues = {};
 			var cells = $j(topRow).find("td");
-			
+
 			for (var i = 0; i < tokens.length; i++){
 				var column = tokenColumnMap[tokens[i]];
 				tokenValues[tokens[i]] = cells[column].innerText;
 			}
 			
 			var message = messageDisplay;
-			console.log(tokens);
-			console.log(message);
-			console.log(tokenValues);
+
 			for(var i = 0; i < tokens.length; i++)
 				message = message.replace(tokens[i], tokenValues[tokens[i]]);
 
-			notify(message);
+			notify(message,topCode);
 		});
 	}
 
-	function notify(msg){
-		port.postMessage({name:'notify', 'value':msg});
+	function notify(msg,topCode){
+		port.postMessage({name:'notify', 'value':msg, 'matchedId': topCode});
 	}
 
 	function onPopupMessage(msg){
@@ -134,6 +176,16 @@ var elmahWatcher = (function($j){
 				}
 			});
 		}
+
+		if (msg.name === "highlight")
+			highlightRow(msg.value);
+	}
+
+	function highlightRow(code){
+		var row = $j("tr:contains(" + code + ")");
+		row.css("background-color", "#3B548C");
+		row.css("color", "#E8DA78");
+		row.find("a").css("color", "#D17C4A")
 	}
 
 	function onConnect(p){

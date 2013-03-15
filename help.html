@@ -1,0 +1,17 @@
+<html>
+<head>
+	<title>ELMAH Watcher Help</title>
+</head>
+<body>
+<h2>URL Watch Pattern</h2>
+Raw JS-style regex.
+<h2>Code Column Pattern</h2>
+Raw JS-style regex.
+<h2>Notification Display Pattern</h2>
+Everything inside @ symbols are column matchers - simple regex to find the column based on its text. Everything outside will be display as-is (except for @ symbols).
+<h2>Filter Pattern</h2>
+A list of expressions delimited by double tilde (~~) marks. A single tilde delimits column pattern (in @ symbols, like above) and the value matcher (regex, no @ symbol allowed). An error has to pass every filter to display a notification. <br/>
+Exampe: <br/>
+@page@~login.aspx~~@error type@~sql
+</body>
+</html>

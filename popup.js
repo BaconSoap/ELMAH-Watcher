@@ -17,6 +17,13 @@ var elmahPopup = (function($j){
 		initPopupPort();
 
 		$j('#enableWatcher').change(checkboxChanged);
+		$j("#helpLink").on('click', showHelp);
+	}
+
+	function showHelp(){
+		chrome.tabs.create({'url': chrome.extension.getURL('help.html')}, function(tab) {
+  		});
+		return false;
 	}
 
 	function setupFilterWatcher(){
