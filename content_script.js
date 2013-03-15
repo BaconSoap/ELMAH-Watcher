@@ -118,6 +118,10 @@ var elmahWatcher = (function($j){
 				refresher = setTimeout(function(){location.reload();}, interval*1000);
 			}
 		}
+
+		if (msg.name === "filter"){
+			console.log("new filter! " + msg.value);
+		}
 	}
 
 	function onMessage(msg){

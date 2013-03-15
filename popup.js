@@ -17,7 +17,29 @@ var elmahPopup = (function($j){
 		initPopupPort();
 
 		$j('#enableWatcher').change(checkboxChanged);
+	}
 
+	function setupFilterWatcher(){
+		chrome.storage.sync.get("filter" + loc, function(val){
+			var start = val["filter" + loc];
+			$j("#filter").val(start);
+			var content = start;
+			$j("#filter").keyup(function(){
+				if ($j("#filter").val() !== content){
+					content = $j("#filter").val();
+					updateFilter(content);
+				}
+			});
+		});
+		
+	}
+
+	function updateFilter(content){
+		var obj = {};
+		obj['filter' + loc] = content;
+		chrome.storage.sync.set(obj, function(){
+			messagePage("filter", content);
+		});
 	}
 
 	function initPopupPort(){
@@ -49,11 +71,12 @@ var elmahPopup = (function($j){
 			loc = msg.value;
 			chrome.storage.sync.get("enabled" + loc, function(val){
 				var enabled = val['enabled'+loc];
-				console.log(val);
+
 				if (enabled === true){
 					$j("#enableWatcher")[0].checked = true;
 					messagePage("interval", interval);
 				}
+				setupFilterWatcher();
 			});
 		}
 	}
