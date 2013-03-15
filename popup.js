@@ -38,7 +38,7 @@ var elmahPopup = (function($j){
 		var obj = {};
 		obj['filter' + loc] = content;
 		chrome.storage.sync.set(obj, function(){
-			messagePage("filter", content);
+			
 		});
 	}
 
