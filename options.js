@@ -23,7 +23,7 @@ var elmahWatcherOptions =
 		setFromStorage("#watchPagePattern", obj, "pageWatchPattern", "elmah.axd");
 		setFromStorage("#refreshInterval", obj, "pageRefreshInterval", 0);
 		setFromStorage("#codePattern", obj, "codePattern", "code|client code");
-		setFromStorage("#messageDisplay", obj, "messageDisplay", "[code|client code] - [error|message]")
+		setFromStorage("#messageDisplay", obj, "messageDisplay", "@code|client code@ - @error|message@")
 	}
 
 	function resetToDefault(){
