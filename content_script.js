@@ -157,7 +157,7 @@ var elmahWatcher = (function($j){
 				clearTimeout(refresher);
 			} else {
 				clearTimeout(refresher);
-				refresher = setTimeout(function(){location.reload();}, interval*1000);
+				refresher = setTimeout(function(){if (location.href.indexOf("van") < 0) location.reload();}, interval*1000);
 			}
 		}
 	}
@@ -172,7 +172,7 @@ var elmahWatcher = (function($j){
 					clearTimeout(refresher);
 				} else if (enabled) {
 					clearTimeout(refresher);
-					refresher = setTimeout(function(){location.reload();}, interval*1000);
+					refresher = setTimeout(function(){if (location.href.indexOf("van") < 0) location.reload();}, interval*1000);
 				}
 			});
 		}

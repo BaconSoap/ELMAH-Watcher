@@ -3,7 +3,7 @@
 
 	"name": "ELMAH Watcher",
 	"description": "Watch ELMAH pages for new errors",
-	"version": "0.9.6",
+	"version": "0.9.7",
 
 	"permissions": [
 		"tabs",
